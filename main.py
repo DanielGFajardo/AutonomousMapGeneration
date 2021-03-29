@@ -66,14 +66,32 @@ def createFountain():
     center = [np.random.randint(4, limit-4), np.random.randint(4, limit-4)]
     while center in notAvailablePoints:
         center = [np.random.randint(4, limit - 4), np.random.randint(4, limit - 4)]
-    for x_offsset  in range(-2, 2):
-        for y_offsset in range(-2, 2):
+    for x_offsset  in range(-1, 2):
+        for y_offsset in range(-1, 2):
             valueX=center[0]+x_offsset
             valueY=center[1]+y_offsset
             mapGame[valueX,valueY] = 1
             definedPoints.append([valueX, valueY])
             visitedPoints.append([valueX, valueY])
             defaultPoints.append([valueX, valueY])
+            notAvailablePoints.append([valueX, valueY])
+    fountainCenters.append(center)
+
+def createEmptySpace():
+    center = [np.random.randint(4, limit-4), np.random.randint(4, limit-4)]
+    while center in notAvailablePoints:
+        center = [np.random.randint(4, limit - 4), np.random.randint(4, limit - 4)]
+    for x_offsset  in range(-1, 1):
+        for y_offsset in range(-1, 1):
+            valueX=center[0]+x_offsset
+            valueY=center[1]+y_offsset
+            mapGame[valueX,valueY] = 1
+            notAvailablePoints.append([valueX, valueY])
+            definedPoints.append([valueX, valueY])
+            visitedPoints.append([valueX, valueY])
+            defaultPoints.append([valueX, valueY])
+            spawnPositions.append([valueX, valueY])
+
 
 
 def initMap():
@@ -82,6 +100,10 @@ def initMap():
     createShelter([43,25])
     createArena([22,25])
     createFountain()
+    createEmptySpace()
+    createEmptySpace()
+    createEmptySpace()
+
 def createMap( id):
     targetPoint = [np.random.randint(1, limit-1), np.random.randint(1, limit-1)]
     while targetPoint in definedPoints:
@@ -121,7 +143,18 @@ def createMap( id):
         visitedPoints.append(targetPoint)
     return targetPoint
 
-if __name__ == "__main__":
+def main():
+    global limit
+    global mapGame
+    global saveZone
+    global definedPoints
+    global defaultPoints
+    global visitedPoints
+    global fountainCenters
+    global spawnPositions
+    global toVisitPoint
+    global notAvailablePoints
+
     limit = 50
     np.set_printoptions(threshold=sys.maxsize)
     mapGame = np.zeros((limit, limit))
@@ -129,7 +162,9 @@ if __name__ == "__main__":
     definedPoints = []
     defaultPoints = []
     visitedPoints = []
+    fountainCenters = []
     toVisitPoint = []
+    spawnPositions = []
     notAvailablePoints = []
     start_time = time.time()
     initMap()
@@ -166,13 +201,42 @@ if __name__ == "__main__":
     '''
     for point in defaultPoints:
         mapGame[point[0],point[1]]=2
+    for point in fountainCenters:
+        mapGame[point[0],point[1]]=3
+    for point in spawnPositions:
+        mapGame[point[0],point[1]]=4
 
     ax = sns.heatmap(mapGame, xticklabels=False, yticklabels=False, cbar=False)
-    with open("map.csv", "w") as my_csv:
-        csvWriter = csv.writer(my_csv, delimiter=',')
-        csvWriter.writerows(mapGame)
-        print("created map")
     plt.show()
     plt.pause(0.001)
+    value = input("Do you want to save this map? Y/N ")
+    if value == "Y":
+        targetMap = 0
+        with open("nmaps.csv") as csvfile:
+            document = csv.reader(csvfile)
+            currentMaps = len(list(document))
+            targetMap = currentMaps + 1
+
+        with open("maps/map"+str(targetMap)+".csv", "w") as my_csv:
+            csvWriter = csv.writer(my_csv, delimiter=',')
+            csvWriter.writerows(mapGame)
+            print("created file "+str(targetMap)+".csv")
+
+        with open("nmaps.csv", "a") as my_csv:
+            csvWriter = csv.writer(my_csv, delimiter=',')
+            csvWriter.writerow(str(targetMap))
+    if value == "N":
+        print("Discarted Map")
+
+
+if __name__ == "__main__":
+    terminated = False
+    plt.ion()
+    while not terminated:
+        value = input("Do you want to create a map? Y/N ")
+        if(value=="Y"):
+            main()
+        if (value == "N"):
+            terminated = True
 
 
